@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::Orientation;
+use crate::Orientation;
 
 pub struct GearBit {
     shared_orientation: Rc<Cell<Orientation>>,

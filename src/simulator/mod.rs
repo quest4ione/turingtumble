@@ -1,12 +1,7 @@
 mod gearbit;
-pub use gearbit::GearBit;
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub enum Orientation {
-    Left,
-    Right,
-}
+pub use self::gearbit::GearBit;
+use crate::Orientation;
+use std::{cell::RefCell, rc::Rc};
 
 pub enum State {
     Simulating,
