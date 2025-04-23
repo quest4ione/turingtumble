@@ -1,128 +1,50 @@
-use super::Piece;
+use std::fmt::Display;
+
 use crate::Orientation;
 
 #[derive(Debug)]
-pub struct Ramp(Orientation);
+pub enum Piece {
+    Ramp(Orientation),
+    Bit(Orientation),
+    GearBit(Orientation),
+    Crossover,
+    Interceptor,
+    Gear,
+}
 
-impl Piece for Ramp {
-    fn symbol(&self) -> char {
-        match self.0 {
-            Orientation::Left => '/',
-            Orientation::Right => '\\',
+impl Display for Piece {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.symbol())
+    }
+}
+
+impl Piece {
+    pub(crate) fn symbol(&self) -> char {
+        match self {
+            Self::Ramp(Orientation::Left) => '/',
+            Self::Ramp(Orientation::Right) => '\\',
+            Self::Bit(Orientation::Left) => '<',
+            Self::Bit(Orientation::Right) => '>',
+            Self::GearBit(Orientation::Left) => '{',
+            Self::GearBit(Orientation::Right) => '}',
+            Self::Crossover => 'X',
+            Self::Interceptor => 'U',
+            Self::Gear => '*',
         }
     }
 
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            '/' => Ramp(Orientation::Left),
-            '\\' => Ramp(Orientation::Right),
+    pub(crate) fn from_symbol(symbol: char) -> Option<Self> {
+        Some(match symbol {
+            '/' => Self::Ramp(Orientation::Left),
+            '\\' => Self::Ramp(Orientation::Right),
+            '<' => Self::Bit(Orientation::Left),
+            '>' => Self::Bit(Orientation::Right),
+            '{' => Self::GearBit(Orientation::Left),
+            '}' => Self::GearBit(Orientation::Right),
+            'X' | 'x' => Self::Crossover,
+            'U' | 'u' => Self::Interceptor,
+            '*' => Self::Gear,
             _ => return None,
-        }))
-    }
-}
-
-#[derive(Debug)]
-pub struct Crossover;
-
-impl Piece for Crossover {
-    fn symbol(&self) -> char {
-        'X'
-    }
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            'X' | 'x' => Self,
-            _ => return None,
-        }))
-    }
-}
-
-#[derive(Debug)]
-pub struct Bit(Orientation);
-
-impl Piece for Bit {
-    fn symbol(&self) -> char {
-        match self.0 {
-            Orientation::Left => '<',
-            Orientation::Right => '>',
-        }
-    }
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            '<' => Bit(Orientation::Left),
-            '>' => Bit(Orientation::Right),
-            _ => return None,
-        }))
-    }
-}
-
-#[derive(Debug)]
-pub struct Interceptor;
-
-impl Piece for Interceptor {
-    fn symbol(&self) -> char {
-        'U'
-    }
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            'U' | 'u' => Interceptor,
-            _ => return None,
-        }))
-    }
-}
-
-#[derive(Debug)]
-pub struct GearBit(Orientation);
-
-impl Piece for GearBit {
-    fn symbol(&self) -> char {
-        match self.0 {
-            Orientation::Left => '{',
-            Orientation::Right => '}',
-        }
-    }
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            '{' => GearBit(Orientation::Left),
-            '}' => GearBit(Orientation::Right),
-            _ => return None,
-        }))
-    }
-}
-
-#[derive(Debug)]
-pub struct Gear;
-
-impl Piece for Gear {
-    fn symbol(&self) -> char {
-        '*'
-    }
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized,
-    {
-        Some(Box::new(match symbol {
-            '*' => Gear,
-            _ => return None,
-        }))
+        })
     }
 }

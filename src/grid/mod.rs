@@ -1,28 +1,11 @@
 mod pieces;
-use std::{
-    collections::HashMap,
-    fmt::{Display, Write},
-};
+use std::{collections::HashMap, fmt::Display};
 
-use pieces::*;
-
-pub trait Piece {
-    fn symbol(&self) -> char;
-
-    fn from_symbol(symbol: char) -> Option<Box<dyn Piece>>
-    where
-        Self: Sized;
-}
-
-impl Display for dyn Piece {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_char(self.symbol())
-    }
-}
+use pieces::Piece;
 
 #[derive(Default)]
 pub struct Grid {
-    pub grid: HashMap<(i64, u64), Box<dyn Piece>>,
+    pub grid: HashMap<(i64, u64), Piece>,
     pub left_start: Option<i64>,
     pub right_start: Option<i64>,
 }
@@ -39,12 +22,16 @@ impl Display for Grid {
 
         for y in y_range.0..=y_range.1 {
             for x in x_range.0..=x_range.1 {
-                f.write_char(match self.grid.get(&(x, y)) {
-                    Some(piece) => piece.symbol(),
-                    None => ' ',
-                })?;
+                write!(
+                    f,
+                    "{}",
+                    match self.grid.get(&(x, y)) {
+                        Some(piece) => piece.symbol(),
+                        None => ' ',
+                    }
+                )?;
             }
-            f.write_char('\n')?;
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -56,24 +43,7 @@ impl Grid {
     }
 
     pub fn from_text(text: String) -> Self {
-        Self::from_text_with_constructors(
-            text,
-            vec![
-                Ramp::from_symbol,
-                Crossover::from_symbol,
-                Bit::from_symbol,
-                Interceptor::from_symbol,
-                GearBit::from_symbol,
-                Gear::from_symbol,
-            ],
-        )
-    }
-
-    pub fn from_text_with_constructors(
-        text: String,
-        constructors: Vec<impl Fn(char) -> Option<Box<dyn Piece>>>,
-    ) -> Self {
-        let mut grid: HashMap<(usize, usize), Box<dyn Piece>> = HashMap::new();
+        let mut grid: HashMap<(usize, usize), Piece> = HashMap::new();
         let mut top_pieces_x: Vec<usize> = Vec::new();
         let mut max_width: usize = 0;
 
@@ -81,18 +51,12 @@ impl Grid {
         for (y, row) in text.split("\n").enumerate() {
             for (x, symbol) in row.to_string().chars().enumerate() {
                 max_width = max_width.max(x);
-                if symbol == ' ' {
-                    continue;
-                }
 
-                for c in constructors.iter() {
-                    if let Some(piece) = c(symbol) {
-                        if y == 0 {
-                            top_pieces_x.push(x);
-                        }
-                        grid.insert((x, y), piece);
-                        break;
+                if let Some(piece) = Piece::from_symbol(symbol) {
+                    if y == 0 {
+                        top_pieces_x.push(x);
                     }
+                    grid.insert((x, y), piece);
                 }
             }
         }
